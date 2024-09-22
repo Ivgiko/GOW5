@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Memory Game</title>
+</head>
+<body>
+    <h1>Enter your guesses:</h1>
+    <form method="POST" action="{{ url_for('memory_input', difficulty=difficulty) }}">
+        {% for i in range(difficulty) %}
+            <label for="guess{{ i+1 }}">Guess {{ i+1 }}:</label>
+            <input type="number" name="guess{{ i+1 }}" min="1" max="101" required><br>
+        {% endfor %}
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

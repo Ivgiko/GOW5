@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Memory Game</title>
+</head>
+<body>
+    <h1>Memorize the following sequence:</h1>
+    <p>{{ rand_list }}</p>
+
+    <script>
+        // Automatically redirect to the form for user guesses after 3 seconds
+        setTimeout(function() {
+            window.location.href = "{{ url_for('memory_form', difficulty=difficulty) }}";  // Redirect to the form input page
+        }, 3000);
+    </script>
+</body>
+</html>
