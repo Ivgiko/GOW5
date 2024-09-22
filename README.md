@@ -1,39 +1,67 @@
-# WorldOfGames Project
+WOG5
+Overview
+This project is a multi-game web application that includes three microservices: Memory Game, Guess Game, and Currency Roulette. Each game runs as a separate Docker container, and the main Flask app orchestrates these services. Scores are stored in a shared MySQL database.
+Project Structure
+WorldOfGames5/
+├── flask_app/        # Main Flask application
+├── memory/           # Memory Game microservice
+├── guess/            # Guess Game microservice
+├── roulette/         # Currency Roulette Game microservice
+├── shared/           # Shared directory containing Score.py
+├── tests/            # Selenium tests for all games
+├── Dockerfile        # Dockerfile for the Flask app
+├── docker-compose.yml  # Docker Compose file to set up all services
+└── README.md         # Project documentation
+Why Score.py is Placed in a Volume
+All three games—Memory Game, Guess Game, and Currency Roulette—need to use the Score.py file for updating the user's score in the MySQL database. However, each game runs in its own Docker container, and Docker containers have isolated file systems.
 
-## Overview
-This project provides a Docker setup for a Python-based web application with Selenium tests. Due to the unavailability of a pre-built Docker image with both Python and Selenium prerequisites, custom configurations were necessary.
+Docker does not allow containers to access files located above their specific folder (build context). This would require replicating the Score.py file inside each game’s folder, which is not efficient and goes against the principle of avoiding duplication.
+To solve this, the Score.py file is placed in a shared volume (C:/Shared on your host machine). By doing this, all three game containers can access Score.py without needing to replicate it across multiple directories. This approach simplifies file management and ensures consistency.
 
-## Docker Configuration
-As no suitable Docker image with both Python and Selenium prerequisites was available, the Docker setup includes:
+Setup and Installation
 
-- **Dockerfile**: Configured to install Google Chrome and ChromeDriver as Selenium prerequisites. This ensures that Selenium tests can run correctly within the Docker container.
+Step 1: Clone the repository
+To get started, clone the project to your local machine.
+git clone https://github.com/Ivgiko/WorldOfGames5.git
+cd WorldOfGames5
 
-- **e2e.py Script**: Contains the end-to-end test logic using Selenium. The script is set up to work with the Chrome browser and includes options necessary for running Selenium in a Docker environment.
+Step 2: Create a shared folder
+Create a C:/Shared folder on your local machine for storing shared files between the Docker containers and the host machine.
 
-- **requirements.txt**: Lists the required Python packages, including Selenium and `webdriver-manager`, to ensure all dependencies are installed inside the Docker container.
+For Windows:
+mkdir C:/Shared
 
-## Repository Information
-- **GitHub Repository**: [Public Repository](https://github.com/Ivgiko/WorldOfGames)  
-  No special configurations are required for accessing the repository.
+For macOS/Linux (adjust folder path):
+Since the docker-compose.yml is set up for C:/Shared, you will need to adjust the docker-compose.yml file to use a valid folder path for macOS/Linux. Update the volume path in the docker-compose.yml file before proceeding.
+mkdir ~/Shared
 
-- **DockerHub Repository**: [Public Repository](https://hub.docker.com/repository/docker/ivgiko/worldofgames4-web/general)  
-  While the repository is public, pushing images requires authentication. A long-term access token is used inside Jenkins file for authentication to simplify access without sharing passwords.
+Then, in the docker-compose.yml, update the shared volume path to:
+volumes:
+  - ~/Shared:/app/shared
 
-## Jenkins Pipeline
-The Jenkins pipeline is configured to run on both Windows and macOS/Linux environments. You will need to uncomment the relevant section for your operating system:
+Step 3: Copy Score.py to the shared folder
+Copy the Score.py file from the project directory to the shared folder.
+For Windows:
+copy shared/Score.py C:/Shared/
+For macOS/Linux (if updated as mentioned above):
+cp shared/Score.py ~/Shared/
 
-1. **Checkout Repository**: Clones the GitHub repository.
+Step 4: Run Docker Compose
+In the root directory of the project, run the following command to build and start all the services (Flask app, game microservices, and MySQL database):
+docker-compose up --build
 
-2. **Build and Run Docker Container**: Builds and runs the Docker container in detached mode.
+Step 5: Verify that the Selenium tests pass
+In the tests container logs, you should see the following message:
+All tests passed successfully.
 
-3. **Test with e2e.py**: Executes the `e2e.py` script to run Selenium tests.
+Step 6: Access the application
+Once the services are running, open your browser and visit:
+http://localhost:8777
 
-4. **Push to DockerHub**: Tags and pushes the Docker image to DockerHub. Authentication is handled using the provided access token.
+Step 7: Stop and remove containers
+Once you're done, you can stop and remove all running containers with the following command:
+docker-compose down
+Known Issue
 
-5. **Clean Up**: Shuts down the Docker container and cleans up resources.
-
-**Note:** Ensure you uncomment either the Windows or macOS/Linux section in the Jenkins file depending on your operating system.
-
-## Additional Notes
-- **Scores.txt**: Since the file is already in the image, I didnt understand what the purpose of mounting it would be, so I skipped that step.
+There is a bug in the Currency Roulette Game where the number in the question "How much is ___ USD in ILS?" is blank. Despite extensive debugging, I was unable to resolve this issue fully. However, the game itself works correctly, and you can proceed with playing it.
 
